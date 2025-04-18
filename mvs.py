@@ -3,10 +3,10 @@ import os
 import requests
 import subprocess
 from telebot import types
+import source.bpm_detect
 
 bot = telebot.TeleBot('7414108235:AAGOilxSXgIVZcXTa4ewGI7DZSPbjx9YP-8')
 DOWNLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "Audio")
-BPM_SCRIPT_PATH = os.path.join(os.path.dirname(__file__), "source", "bpm_detect.py")
 
 # Если какой-то умник удалит папку
 if not os.path.exists(DOWNLOAD_FOLDER):
@@ -23,50 +23,38 @@ def get_text_messages(message):
     if message.text == '/help':
         bot.send_message(message.from_user.id, 'Coming soon...')
 
-# Получение аудиофайла
 @bot.message_handler(content_types=['audio'])
 def handle_audio(message):
-    file_id = None
-    file_name = "audio_file"
-    
-    # Распознание типа файла
-    if message.content_type == 'audio':
+    try:
         file_id = message.audio.file_id
-        file_name = message.audio.file_name or "audio.mp3"
-    if not file_id:
-        bot.reply_to(message, "Это не аудиофайл!")
-        return
-    
-    # Получение ссылки на файл
-    file_info = bot.get_file(file_id)
-    file_url = f"https://api.telegram.org/file/bot{bot.token}/{file_info.file_path}"
-    
-    # Скачивание аудио
-    response = requests.get(file_url, stream=True)
-    if response.status_code == 200:
-        file_path = os.path.join(DOWNLOAD_FOLDER, file_name)
+        file_name = message.audio.file_name or "audio_file.mp3"
         
+        # Скачивание файла
+        file_info = bot.get_file(file_id)
+        file_url = f"https://api.telegram.org/file/bot{bot.token}/{file_info.file_path}"
+        
+        response = requests.get(file_url, stream=True)
+        if response.status_code != 200:
+            raise ConnectionError("Не удалось скачать файл")
+        
+        file_path = os.path.join(DOWNLOAD_FOLDER, file_name)
         with open(file_path, 'wb') as f:
             f.write(response.content)
         
-        # Запуск BPM Detector
+        # Анализ BPM
         try:
-            result = subprocess.run(
-                ["python", BPM_SCRIPT_PATH, file_path],
-                capture_output=True,
-                text=True
-            )
-        
-            if result.returncode == 0:
-                bpm = result.stdout.strip()
-                bot.reply_to(message, f"🎵 BPM трека: {bpm}")
-            else:
-                bot.reply_to(message, f"❌ Ошибка анализа BPM: {result.stderr}")
-
+            bpm = source.bpm_detect.BPM_Detector(file_path)
+            bpm_value = f"{round(float(bpm.tempo))} ({round(float(bpm.tempo) * 2)})"
+            bot.reply_to(message, f"🎵 BPM трека: {bpm_value}")
+            
         except Exception as e:
-            bot.reply_to(message, f"⚠️ Ошибка: {e}")
-    
-    # Удаление аудиофайла
-    os.remove(file_path)
+            bot.reply_to(message, f"⚠️ Ошибка анализа: {str(e)}")
+            
+    except Exception as e:
+        bot.reply_to(message, f"🚫 Критическая ошибка: {str(e)}")
+        
+    finally:
+        if os.path.exists(file_path):
+            os.remove(file_path)
 
 bot.polling(none_stop=True, interval=0)
