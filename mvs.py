@@ -1,10 +1,16 @@
 import telebot
 import os
 import requests
+import subprocess
 from telebot import types
 
 bot = telebot.TeleBot('7414108235:AAGOilxSXgIVZcXTa4ewGI7DZSPbjx9YP-8')
 DOWNLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "Audio")
+BPM_SCRIPT_PATH = os.path.join(os.path.dirname(__file__), "source", "bpm_detect.py")
+
+# Если какой-то умник удалит папку
+if not os.path.exists(DOWNLOAD_FOLDER):
+    os.makedirs(DOWNLOAD_FOLDER)
 
 # Стартовое сообщение
 @bot.message_handler(commands=['start'])
@@ -41,11 +47,26 @@ def handle_audio(message):
         file_path = os.path.join(DOWNLOAD_FOLDER, file_name)
         
         with open(file_path, 'wb') as f:
-            for chunk in response.iter_content(1024):
-                f.write(chunk)
+            f.write(response.content)
         
-        bot.reply_to(message, f"✅ Аудио сохранено как: `{file_name}`", parse_mode="Markdown")
-    else:
-        bot.reply_to(message, "❌ Ошибка при скачивании файла")
+        # Запуск BPM Detector
+        try:
+            result = subprocess.run(
+                ["python", BPM_SCRIPT_PATH, file_path],
+                capture_output=True,
+                text=True
+            )
+        
+            if result.returncode == 0:
+                bpm = result.stdout.strip()
+                bot.reply_to(message, f"🎵 BPM трека: {bpm}")
+            else:
+                bot.reply_to(message, f"❌ Ошибка анализа BPM: {result.stderr}")
+
+        except Exception as e:
+            bot.reply_to(message, f"⚠️ Ошибка: {e}")
+    
+    # Удаление аудиофайла
+    os.remove(file_path)
 
 bot.polling(none_stop=True, interval=0)

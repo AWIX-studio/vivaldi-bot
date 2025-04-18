@@ -1,5 +1,6 @@
 import numpy as np
 import librosa
+import sys
 from pydub import AudioSegment
 from scipy.signal import find_peaks
 
@@ -61,5 +62,6 @@ class HighPrecisionBPM:
         return round(initial_bpm, 3)
 
 # Использование
-# bpm_analyzer = HighPrecisionBPM("music.mp3")
-# print(f"BPM: {bpm_analyzer.tempo:.0f}")
+file_path = sys.argv[1]
+bpm = HighPrecisionBPM(file_path)
+print(f"BPM: {bpm.tempo:.0f}")
