@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Функции/Функции.md",
+                "file": "Как будет работать бот.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Функции"
+              "title": "Как будет работать бот"
             }
           }
         ]
@@ -94,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Функции/Функции.md",
+                "file": "Как будет работать бот.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for Функции"
+              "title": "Backlinks for Как будет работать бот"
             }
           },
           {
@@ -167,11 +167,13 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "30d2db0bd29e286f",
+  "active": "aa8f1451c851e15f",
   "lastOpenFiles": [
-    "Функции",
-    "Vivaldi Bot.md",
     "Функции/Функции.md",
+    "Как будет работать бот.md",
+    "Vivaldi Bot.md",
+    "Vivaldi Bot.canvas",
+    "Функции",
     "Untitled.md"
   ]
 }

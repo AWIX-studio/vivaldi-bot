@@ -1,0 +1,9 @@
+{
+	"nodes":[
+		{"id":"92cb335aadb3f1e9","type":"file","file":"Функции/Функции.md","x":-280,"y":-300,"width":400,"height":400},
+		{"id":"8f369930c5d09fa0","type":"file","file":"Vivaldi Bot.md","x":-280,"y":-800,"width":400,"height":400}
+	],
+	"edges":[
+		{"id":"52b585938df33858","fromNode":"8f369930c5d09fa0","fromSide":"bottom","toNode":"92cb335aadb3f1e9","toSide":"top"}
+	]
+}
