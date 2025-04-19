@@ -1,8 +1,6 @@
 import telebot
 import os
 import requests
-import subprocess
-from telebot import types
 import source.bpm_detect
 
 bot = telebot.TeleBot('7414108235:AAGOilxSXgIVZcXTa4ewGI7DZSPbjx9YP-8')

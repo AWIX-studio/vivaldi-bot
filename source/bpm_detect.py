@@ -1,7 +1,6 @@
 from pydub import AudioSegment
 import numpy as np
 import librosa
-from pydub.audio_segment import array
 
 class BPM_Detector:
     def __init__(self, audio_path: str):
