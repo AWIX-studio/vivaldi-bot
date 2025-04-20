@@ -2,8 +2,11 @@ import telebot
 import os
 import requests
 import source.bpm_detect
+from dotenv import load_dotenv
 
-bot = telebot.TeleBot('7414108235:AAGOilxSXgIVZcXTa4ewGI7DZSPbjx9YP-8')
+load_dotenv()
+bot = telebot.TeleBot(str(os.getenv('BOT_TOKEN')))
+telebot.apihelper.delete_webhook(bot.token)
 DOWNLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "Audio")
 
 # Если какой-то умник удалит папку
