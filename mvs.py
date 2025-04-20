@@ -4,9 +4,9 @@ import requests
 import source.bpm_detect
 from dotenv import load_dotenv
 
-# neural-stem-sliser
-import neuralStemSliser.step1_BPMAnalysis
-import neuralStemSliser.step2_KeyAnalysis
+# neural-stem-slicer
+import neuralStemSlicer.step1_BPMAnalysis
+import neuralStemSlicer.step2_KeyAnalysis
 
 load_dotenv()
 bot = telebot.TeleBot(str(os.getenv('BOT_TOKEN')))
@@ -60,14 +60,14 @@ def handle_audio(message):
             bot.reply_to(message, f"⚠️ Ошибка анализа: {str(e)}")
         """
         
-        # Анализ от neuralStemSliser
+        # Анализ от neuralStemSlicer
         try:
             # BPM
-            y, sr = neuralStemSliser.step1_BPMAnalysis.detect_y_sr(file_path)
-            bpm = neuralStemSliser.step1_BPMAnalysis.detect_bpm(y, sr, file_path)[0]
+            y, sr = neuralStemSlicer.step1_BPMAnalysis.detect_y_sr(file_path)
+            bpm = neuralStemSlicer.step1_BPMAnalysis.detect_bpm(y, sr, file_path)[0]
             
             # Key
-            key = neuralStemSliser.step2_KeyAnalysis.detect_key(file_path)
+            key = neuralStemSlicer.step2_KeyAnalysis.detect_key(file_path)
             bot.reply_to(message, f"BPM: {bpm} \nKey: {key[0][1]}")
         except Exception as e:
             bot.reply_to(message, f'ошибка: {str(e)}')
