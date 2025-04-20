@@ -1,0 +1,23 @@
+# Core dependencies
+demucs==4.0.0
+torch  # First version supporting Python 3.11
+torchaudio  # Match torch version
+numpy  # Pin to last 1.x version
+librosa>=0.10.0
+soundfile>=0.12.1
+resampy>=0.4.2
+
+# Deep learning models
+deeprhythm
+gdown>=4.7.1  # For downloading drumsep model
+
+# Progress tracking
+tqdm>=4.65.0
+
+# Additional required dependencies
+pydub>=0.25.1
+scipy>=1.7.0
+
+# System requirements (not pip installable)
+# tkinter - Install via: brew install python-tk@3.11
+# ffmpeg - Install via: brew install ffmpeg

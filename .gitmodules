@@ -1,0 +1,3 @@
+[submodule "neuralStemSliser"]
+	path = neuralStemSliser
+	url = https://github.com/dennisrcao/neural-stem-slicer
