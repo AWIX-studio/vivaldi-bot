@@ -44,8 +44,11 @@ def handle_audio(message):
         
         # Анализ BPM
         try:
-            bpm = source.bpm_detect.BPM_Detector(file_path)
-            bpm_value = f"{round(float(bpm.tempo))} ({round(float(bpm.tempo) * 2)})"
+            bpm = source.bpm_detect.BPM_Detector(file_path).tempo
+            if bpm > 100:
+                bpm_value = f'{round(float(bpm))}'
+            else:
+                bpm_value = f"{round(float(bpm))} ({round(float(bpm) * 2)})"
             bot.reply_to(message, f"🎵 BPM трека: {bpm_value}")
             
         except Exception as e:
