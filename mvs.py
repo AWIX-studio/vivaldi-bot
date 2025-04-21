@@ -26,9 +26,7 @@ if not os.path.exists(DOWNLOAD_FOLDER):
 # Стартовое сообщение
 @bot.message_handler(commands=['start'])
 def start(message):
-    
     bot.send_message(message.from_user.id, 'Привет. Я Вивальди бот. Я создан, чтобы немного упростить тебе работу с музыкой. Пришли мне свой аудиофайл и я скажу, что я могу с ним сделать (или напиши /help чтобы получить информацию по всем моим возможностям).')
-
 
 # Получение текстовых сообщений
 @bot.message_handler(content_types=['text'])
@@ -37,18 +35,15 @@ def get_text_messages(message):
         bot.send_message(message.from_user.id, 'Coming soon...')
 
 # Получаем аудиофайл
-
 @bot.message_handler(content_types=['audio'])
 def handle_audio(message):
     try:
         file_id = message.audio.file_id
         file_name = message.audio.file_name or "audio_file.mp3"
         chat_id = message.chat.id
-
         # Генерируем уникальный ID для файла (чтобы не передавать file_id)
         unique_file_id = f"{chat_id}_{int(time.time())}"
         file_path = os.path.join(DOWNLOAD_FOLDER, f"{unique_file_id}.mp3")
-
         # Скачиваем файл
         file_info = bot.get_file(file_id)
         file_url = f"https://api.telegram.org/file/bot{bot.token}/{file_info.file_path}"
@@ -56,12 +51,10 @@ def handle_audio(message):
         
         with open(file_path, 'wb') as f:
             f.write(response.content)
-
         # Анализ BPM и Key (ваш код)
         y, sr = neuralStemSlicer.step1_BPMAnalysis.detect_y_sr(file_path)
         bpm = neuralStemSlicer.step1_BPMAnalysis.detect_bpm(y, sr, file_path)[0]
         key = neuralStemSlicer.step2_KeyAnalysis.detect_key(file_path)
-
         # Создаём кнопки с сокращённым callback_data
         markup = types.InlineKeyboardMarkup()
         markup.add(
@@ -74,14 +67,12 @@ def handle_audio(message):
                 callback_data=f'pitch|{unique_file_id}'
             )
         )
-
         # Удаляем предыдущее сообщение (если есть)
         if chat_id in user_last_messages:
             try:
                 bot.delete_message(chat_id, user_last_messages[chat_id])
             except:
                 pass
-
         # Отправляем новое сообщение
         msg = bot.reply_to(
             message,
@@ -89,7 +80,6 @@ def handle_audio(message):
             reply_markup=markup
         )
         user_last_messages[chat_id] = msg.message_id
-
     except Exception as e:
         bot.reply_to(message, f"Ошибка: {str(e)}")
 
@@ -101,7 +91,6 @@ def handle_button_click(call):
         action = data_parts[0]
         unique_file_id = data_parts[1]
         file_path = os.path.join(DOWNLOAD_FOLDER, f"{unique_file_id}.mp3")
-
         if action == 'stem':
             bot.send_message(call.message.chat.id, "Начинаю разделение на дорожки...")
             # Здесь обработка файла из file_path
@@ -114,11 +103,11 @@ def handle_button_click(call):
             for file in files:
                 os.remove(f'out/{unique_file_id}/{file}')
             os.rmdir(f'out/{unique_file_id}')
-                
             
         elif action == 'pitch':
             bot.send_message(call.message.chat.id, "Меняю питч...")
             # Здесь обработка файла из file_path
+            
 
     except Exception as e:
         bot.send_message(call.message.chat.id, f"Ошибка: {str(e)}")
