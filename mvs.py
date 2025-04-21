@@ -9,6 +9,7 @@ import time
 # neural-stem-slicer
 import neuralStemSlicer.step1_BPMAnalysis
 import neuralStemSlicer.step2_KeyAnalysis
+import neuralStemSlicer.step3_1_StemSeperation
 
 load_dotenv()
 bot = telebot.TeleBot(str(os.getenv('BOT_TOKEN')))
@@ -96,6 +97,7 @@ def handle_audio(message):
 def handle_button_click(call):
     try:
         data_parts = call.data.split('|')
+        print(data_parts)
         action = data_parts[0]
         unique_file_id = data_parts[1]
         file_path = os.path.join(DOWNLOAD_FOLDER, f"{unique_file_id}.mp3")
@@ -103,6 +105,17 @@ def handle_button_click(call):
         if action == 'stem':
             bot.send_message(call.message.chat.id, "Начинаю разделение на дорожки...")
             # Здесь обработка файла из file_path
+            neuralStemSlicer.step3_1_StemSeperation.separate_stems(file_path, f'out/{unique_file_id}')
+            files = os.listdir(f'out/{unique_file_id}/')
+            for file in files:
+                with open(f'out/{unique_file_id}/{file}', 'rb') as sending_file:
+                    bot.send_audio(call.message.chat.id, sending_file)
+            os.remove(file_path)
+            for file in files:
+                os.remove(f'out/{unique_file_id}/{file}')
+            os.rmdir(f'out/{unique_file_id}')
+                
+            
         elif action == 'pitch':
             bot.send_message(call.message.chat.id, "Меняю питч...")
             # Здесь обработка файла из file_path
