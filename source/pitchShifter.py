@@ -7,6 +7,7 @@ def change_pitch_with_speed(input_file, output_file, cents):
     :param cents: +100 (выше и быстрее), -100 (ниже и медленнее)
     """
     audio = AudioSegment.from_file(input_file)
+    
     samples = np.array(audio.get_array_of_samples())
     
     # Рассчитываем коэффициент изменения частоты
@@ -24,5 +25,3 @@ def change_pitch_with_speed(input_file, output_file, cents):
     # Экспортируем с исходной частотой (длительность изменится)
     shifted_audio.export(output_file, format="mp3")
 
-# Примеры:
-change_pitch_with_speed("./RadioheadCreep.mp3", "higher_faster.mp3", 100)  # +100 центов (выше и быстрее)
