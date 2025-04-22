@@ -87,7 +87,8 @@ def handle_audio(message):
         # Отправляем новое сообщение
         msg = bot.reply_to(
             message,
-            f"Информация о файле:\nBPM: {bpm}\nKey: {key[0][1]}\nВыберите действие:",
+            f"Информация о файле:\n*BPM:* {bpm}\n*Key:* {key[0][1]}\n\nВыберите дальнейшее действие:",
+            parse_mode="Markdown",
             reply_markup=markup
         )
         user_last_messages[chat_id] = msg.message_id
@@ -97,7 +98,7 @@ def handle_audio(message):
 @bot.callback_query_handler(func=lambda call: True)
 def handle_button_click(call):
     try:
-        data_parts = call.data.split('_')
+        data_parts = call.data.split('|')
         print(data_parts)
         action = data_parts[0]
         unique_file_id = data_parts[1]
@@ -109,6 +110,7 @@ def handle_button_click(call):
             # Здесь обработка файла из file_path
             neuralStemSlicer.step3_1_StemSeperation.separate_stems(file_path, fr'out/{unique_file_id}')
             files = os.listdir(f'out/{unique_file_id}/')
+            bot.send_message(call.message.chat.id, "Выполнено!")
             for file in files:
                 with open(f'out/{unique_file_id}/{file}', 'rb') as sending_file:
                     bot.send_audio(call.message.chat.id, sending_file)
@@ -118,7 +120,7 @@ def handle_button_click(call):
             os.rmdir(f'out/{unique_file_id}')
             
         elif action == 'pitch':
-            bot.send_message(call.message.chat.id, "На сколько центов?")
+            bot.send_message(call.message.chat.id, "Введите количество центов (число).\n__Примечание: если хотите замедлить песню, нужно вводить отрицательное значение__", parse_mode="Markdown")
             # Здесь обработка файла из file_path
             user_states[call.from_user.id] = {
                     'waiting_for_pitch' : True,
@@ -142,10 +144,11 @@ def handle_text(message):
             file_name = user_states[message.from_user.id]['file_name']
             file_path = user_states[message.from_user.id]['file_path']
             unique_file_id = user_states[message.from_user.id]['unique_file_id']
-            out_path = fr'{cent}{file_name}'
+            out_path = fr'(+{cent}) {file_name[:-4]}'
             source.pitchShifter.change_pitch_with_speed(file_path, out_path, cent)
             print('код выполнился')
             with open(out_path, 'rb') as sending_file:
+                bot.send_message(message.chat.id, 'Готово!')
                 bot.send_audio(message.chat.id, sending_file)
 
             os.remove(file_path)
