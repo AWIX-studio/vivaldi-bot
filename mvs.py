@@ -43,11 +43,14 @@ def help(message):
 def handle_audio(message):
     try:
         file_id = message.audio.file_id
-        file_name = message.audio.file_name or "audio_file.mp3"
+        original_file_name = message.audio.file_name or "audio_file.mp3"
         chat_id = message.chat.id
+
         # Генерируем уникальный ID для файла (чтобы не передавать file_id)
+        safe_file_name = original_file_name.replace(" ", "_").replace(".", "_")[:20]
         unique_file_id = f"{chat_id}_{int(time.time())}"
         file_path = os.path.join(DOWNLOAD_FOLDER, f"{unique_file_id}.mp3")
+
         # Скачиваем файл
         file_info = bot.get_file(file_id)
         file_url = f"https://api.telegram.org/file/bot{bot.token}/{file_info.file_path}"
@@ -55,28 +58,32 @@ def handle_audio(message):
         
         with open(file_path, 'wb') as f:
             f.write(response.content)
-        # Анализ BPM и Key (ваш код)
+
+        # Анализ BPM и Key
         y, sr = neuralStemSlicer.step1_BPMAnalysis.detect_y_sr(file_path)
         bpm = neuralStemSlicer.step1_BPMAnalysis.detect_bpm(y, sr, file_path)[0]
         key = neuralStemSlicer.step2_KeyAnalysis.detect_key(file_path)
+
         # Создаём кнопки с сокращённым callback_data
-        markup = types.InlineKeyboardMarkup()
+        markup = types.InlineKeyboardMarkup(row_width=1)
         markup.add(
             types.InlineKeyboardButton(
                 'Разделить по дорожкам', 
-                callback_data=f'stem|{unique_file_id}|{file_name}'  # Только действие и ID
+                callback_data=f'stem|{unique_file_id}|{safe_file_name}'  # Только действие и ID
             ),
             types.InlineKeyboardButton(
                 'Изменить питч', 
-                callback_data=f'pitch|{unique_file_id}|{file_name}'
+                callback_data=f'pitch|{unique_file_id}|{safe_file_name}'
             )
         )
+
         # Удаляем предыдущее сообщение (если есть)
         if chat_id in user_last_messages:
             try:
                 bot.delete_message(chat_id, user_last_messages[chat_id])
             except:
                 pass
+                
         # Отправляем новое сообщение
         msg = bot.reply_to(
             message,
@@ -90,12 +97,13 @@ def handle_audio(message):
 @bot.callback_query_handler(func=lambda call: True)
 def handle_button_click(call):
     try:
-        data_parts = call.data.split('|')
+        data_parts = call.data.split('_')
         print(data_parts)
         action = data_parts[0]
         unique_file_id = data_parts[1]
         file_name = data_parts[2]
         file_path = os.path.join(DOWNLOAD_FOLDER, f"{unique_file_id}.mp3")
+
         if action == 'stem':
             bot.send_message(call.message.chat.id, "Начинаю разделение на дорожки...")
             # Здесь обработка файла из file_path
