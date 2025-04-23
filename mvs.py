@@ -31,7 +31,10 @@ if not os.path.exists(DOWNLOAD_FOLDER):
 # Стартовое сообщение
 @bot.message_handler(commands=['start'])
 def start(message):
-    bot.send_message(message.from_user.id, 'Привет. Я Вивальди бот. Я создан, чтобы немного упростить тебе работу с музыкой. Пришли мне свой аудиофайл и я скажу, что я могу с ним сделать (или напиши /help чтобы получить информацию по всем моим возможностям).')
+    bot.send_message(message.from_user.id, '''Привет. Я Вивальди бот.
+Я создан, чтобы немного упростить тебе работу с музыкой.
+Пришли мне свой аудиофайл и я скажу, что я могу с ним сделать
+(или напиши /help чтобы получить информацию по всем моим возможностям).''')
 
 # Получение текстовых сообщений
 @bot.message_handler(commands=['help'])
@@ -69,11 +72,11 @@ def handle_audio(message):
         markup.add(
             types.InlineKeyboardButton(
                 'Разделить по дорожкам', 
-                callback_data=f'stem|{unique_file_id}|{safe_file_name}'  # Только действие и ID
+                callback_data=f'stem|{unique_file_id}'  # Только действие и ID
             ),
             types.InlineKeyboardButton(
                 'Изменить питч', 
-                callback_data=f'pitch|{unique_file_id}|{safe_file_name}'
+                callback_data=f'pitch|{unique_file_id}'
             )
         )
 
@@ -87,7 +90,8 @@ def handle_audio(message):
         # Отправляем новое сообщение
         msg = bot.reply_to(
             message,
-            f"Информация о файле:\n*BPM:* {bpm}\n*Key:* {key[0][1]}\n\nВыберите дальнейшее действие:",
+            f'''Информация о файле:\n*BPM:* {bpm}\n*Key:* {key[0][1]}\n\n
+            Выберите дальнейшее действие:''',
             parse_mode="Markdown",
             reply_markup=markup
         )
@@ -102,13 +106,14 @@ def handle_button_click(call):
         print(data_parts)
         action = data_parts[0]
         unique_file_id = data_parts[1]
-        file_name = data_parts[2]
         file_path = os.path.join(DOWNLOAD_FOLDER, f"{unique_file_id}.mp3")
 
         if action == 'stem':
             bot.send_message(call.message.chat.id, "Начинаю разделение на дорожки...")
             # Здесь обработка файла из file_path
-            neuralStemSlicer.step3_1_StemSeperation.separate_stems(file_path, fr'out/{unique_file_id}')
+            neuralStemSlicer.step3_1_StemSeperation.separate_stems(
+                    file_path, fr'out/{unique_file_id}'
+                    )
             files = os.listdir(f'out/{unique_file_id}/')
             bot.send_message(call.message.chat.id, "Выполнено!")
             for file in files:
@@ -120,7 +125,10 @@ def handle_button_click(call):
             os.rmdir(f'out/{unique_file_id}')
             
         elif action == 'pitch':
-            bot.send_message(call.message.chat.id, "Введите количество центов (число).\n__Примечание: если хотите замедлить песню, нужно вводить отрицательное значение__", parse_mode="Markdown")
+            bot.send_message(call.message.chat.id, '''Введите количество центов (число).
+__Примечание: если хотите замедлить песню, нужно вводить отрицательное значение__''',
+                             parse_mode="Markdown"
+                             )
             # Здесь обработка файла из file_path
             user_states[call.from_user.id] = {
                     'waiting_for_pitch' : True,
@@ -128,7 +136,6 @@ def handle_button_click(call):
                     'chat_id' : call.message.chat.id,
                     'file_path' : file_path,
                     'unique_file_id' : unique_file_id,
-                    'file_name' : file_name
             }
     except Exception as e:
         bot.send_message(call.message.chat.id, f"Ошибка: {str(e)}")
@@ -141,10 +148,9 @@ def handle_text(message):
             cent = int(message.text)
             bot.send_message(message.chat.id, 'Выполняю...')
 
-            file_name = user_states[message.from_user.id]['file_name']
             file_path = user_states[message.from_user.id]['file_path']
             unique_file_id = user_states[message.from_user.id]['unique_file_id']
-            out_path = fr'(+{cent}) {file_name[:-4]}'
+            out_path = fr'(+{cent}) {unique_file_id}'
             source.pitchShifter.change_pitch_with_speed(file_path, out_path, cent)
             print('код выполнился')
             with open(out_path, 'rb') as sending_file:
@@ -154,8 +160,6 @@ def handle_text(message):
             os.remove(file_path)
             os.remove(out_path)
             
-
-
     except Exception as e:
         bot.send_message(message.chat.id, f"Ошибка: {str(e)}")
 bot.polling(none_stop=True, interval=0)

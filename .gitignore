@@ -1,2 +1,6 @@
 .env
 .venv/
+./Audio/*
+./out/*
+./source/__pycache__/
+./neuralStemSlicer/__pycache__/
